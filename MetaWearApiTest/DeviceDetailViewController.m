@@ -66,6 +66,10 @@
 @property (weak, nonatomic) IBOutlet UILabel *rssiLevelLabel;
 @property (weak, nonatomic) IBOutlet UITextField *hapticPulseWidth;
 @property (weak, nonatomic) IBOutlet UITextField *hapticDutyCycle;
+@property (weak, nonatomic) IBOutlet UITextField *beaconMajor;
+@property (weak, nonatomic) IBOutlet UITextField *beaconMinor;
+@property (weak, nonatomic) IBOutlet UITextField *beaconUUID;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *beaconFrequency;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *gpioPinSelector;
 @property (weak, nonatomic) IBOutlet UILabel *gpioPinDigitalValue;
 @property (weak, nonatomic) IBOutlet UILabel *gpioPinAnalogValue;
@@ -114,6 +118,7 @@
     
     [self.device addObserver:self forKeyPath:@"state" options:NSKeyValueObservingOptionNew context:nil];
     [self connectDevice:YES];
+    [self initiBeaconOutlets];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -137,6 +142,31 @@
             [self setConnected:NO];
             [self.scrollView scrollRectToVisible:CGRectMake(0, 0, 10, 10) animated:YES];
         }];
+    }
+    else if (self.device.state == CBPeripheralStateConnected) {
+        [self initiBeaconOutlets];
+    }
+}
+
+- (void)initiBeaconOutlets
+{
+    self.beaconMajor.text = [NSString stringWithFormat:@"%i", self.device.iBeacon.major];
+    self.beaconMinor.text = [NSString stringWithFormat:@"%i", self.device.iBeacon.minor];
+    self.beaconUUID.text = self.device.iBeacon.uuid.UUIDString;
+    
+    switch (self.device.iBeacon.frequency) {
+        case 20:
+            [self.beaconFrequency setSelectedSegmentIndex:0];
+            break;
+        case 100:
+            [self.beaconFrequency setSelectedSegmentIndex:1];
+            break;
+        case 240:
+            [self.beaconFrequency setSelectedSegmentIndex:2];
+            break;
+        default:
+            [self.beaconFrequency setSelectedSegmentIndex:1];
+            break;
     }
 }
 
@@ -332,6 +362,40 @@
 - (IBAction)startiBeaconPressed:(id)sender
 {
     [self.device.iBeacon setBeaconOn:YES];
+}
+
+- (IBAction)saveiBeaconPressed:(id)sender
+{
+    self.beaconMajor.text = self.beaconMajor.text.length > 0 ? self.beaconMajor.text : [NSString stringWithFormat:@"%i", self.device.iBeacon.major];
+    self.beaconMinor.text = self.beaconMinor.text.length > 0 ? self.beaconMinor.text : [NSString stringWithFormat:@"%i", self.device.iBeacon.minor];
+    
+    self.device.iBeacon.major = self.beaconMajor.text.integerValue;
+    self.device.iBeacon.minor = self.beaconMinor.text.integerValue;
+    
+    switch (self.beaconFrequency.selectedSegmentIndex) {
+        case 0:
+            self.device.iBeacon.frequency = 20;
+            break;
+        case 1:
+            self.device.iBeacon.frequency = 100;
+            break;
+        case 2:
+            self.device.iBeacon.frequency = 240;
+            break;
+        default:
+            self.device.iBeacon.frequency = 100;
+            break;
+    }
+    
+    NSUUID *UUID = [[NSUUID alloc] initWithUUIDString:self.beaconUUID.text];
+    
+    if (UUID) {
+        self.device.iBeacon.uuid = [CBUUID UUIDWithString:self.beaconUUID.text];
+        self.beaconUUID.textColor = [UIColor blackColor];
+    }
+    else {
+        self.beaconUUID.textColor = [UIColor redColor];
+    }
 }
 
 - (IBAction)stopiBeaconPressed:(id)sender
