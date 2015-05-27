@@ -69,7 +69,9 @@
 @property (weak, nonatomic) IBOutlet UITextField *beaconMajor;
 @property (weak, nonatomic) IBOutlet UITextField *beaconMinor;
 @property (weak, nonatomic) IBOutlet UITextField *beaconUUID;
+@property (weak, nonatomic) IBOutlet UITextField *beaconCalibratedReceiverPower;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *beaconFrequency;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *beaconTransmitPower;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *gpioPinSelector;
 @property (weak, nonatomic) IBOutlet UILabel *gpioPinDigitalValue;
 @property (weak, nonatomic) IBOutlet UILabel *gpioPinAnalogValue;
@@ -163,6 +165,41 @@
             break;
         case 240:
             [self.beaconFrequency setSelectedSegmentIndex:2];
+            break;
+        default:
+            [self.beaconFrequency setSelectedSegmentIndex:1];
+            break;
+    }
+    
+    self.beaconCalibratedReceiverPower.text = [NSString stringWithFormat:@"%i",self.device.iBeacon.calibratedReceiverPower];
+    
+    switch (self.device.iBeacon.transmitPower) {
+        case MBLiBeaconTransmitPower4dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:0];
+            break;
+        case MBLiBeaconTransmitPower0dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:1];
+            break;
+        case MBLiBeaconTransmitPowerMinus4dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:2];
+            break;
+        case MBLiBeaconTransmitPowerMinus8dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:3];
+            break;
+        case MBLiBeaconTransmitPowerMinus12dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:4];
+            break;
+        case MBLiBeaconTransmitPowerMinus16dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:5];
+            break;
+        case MBLiBeaconTransmitPowerMinus20dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:6];
+            break;
+        case MBLiBeaconTransmitPowerMinus30dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:7];
+            break;
+        case MBLiBeaconTransmitPowerMinus40dBm:
+            [self.beaconTransmitPower setSelectedSegmentIndex:8];
             break;
         default:
             [self.beaconFrequency setSelectedSegmentIndex:1];
@@ -385,6 +422,48 @@
         default:
             self.device.iBeacon.frequency = 100;
             break;
+    }
+    
+    switch (self.beaconTransmitPower.selectedSegmentIndex) {
+        case 0:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPower4dBm;
+            break;
+        case 1:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPower0dBm;
+            break;
+        case 2:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus4dBm;
+            break;
+        case 3:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus8dBm;
+            break;
+        case 4:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus12dBm;
+            break;
+        case 5:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus16dBm;
+            break;
+        case 6:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus20dBm;
+            break;
+        case 7:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus30dBm;
+            break;
+        case 8:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPowerMinus40dBm;
+            break;
+        default:
+            self.device.iBeacon.transmitPower = MBLiBeaconTransmitPower0dBm;
+            break;
+    }
+    
+    if (self.beaconCalibratedReceiverPower.text.integerValue <= -10 && self.beaconCalibratedReceiverPower.text.integerValue >= -127)
+    {
+        self.device.iBeacon.calibratedReceiverPower = self.beaconCalibratedReceiverPower.text.integerValue;
+        self.beaconCalibratedReceiverPower.textColor = [UIColor blackColor];
+    }
+    else {
+        self.beaconCalibratedReceiverPower.textColor = [UIColor redColor];
     }
     
     NSUUID *UUID = [[NSUUID alloc] initWithUUIDString:self.beaconUUID.text];
